@@ -1,8 +1,10 @@
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.ArrayList;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -18,6 +20,8 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 	
 	private Ship ship;
 	private Alien[] alien = new Alien[10];
+	
+	private ArrayList<Bullet> bullet = new ArrayList<Bullet>();
 	
 	public Panel()
 	{
@@ -47,7 +51,6 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 				ax = 10;
 			}
 		}
-		
 		
 		
 		
@@ -84,22 +87,16 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 		}
 
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+	
 		
 		//Draw aliens
 		g.setColor(Color.BLUE);
 		for (int i = 0; i < alien.length; i++)
 		{
-			g.fillRect(alien[i].x, alien[i].y, alien[i].w, alien[i].h);
+			if (alien[i].isVisible)
+			{
+				g.fillRect(alien[i].x, alien[i].y, alien[i].w, alien[i].h);
+			}
 		}
 		
 		//Move aliens left or right
@@ -146,11 +143,42 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 			}
 		}	
 		
-					 
-					 
+		//Draw bullets
+		g.setColor(Color.black);
+		for(Bullet i : bullet)
+		{
+			g.fillRect(i.x, i.y, i.w, i.h);
+		}
+					
+		//Move bullets
+		for (int i = 0; i < bullet.size(); i++)
+		{
+			bullet.get(i).y -= bullet.get(i).s;
+			if (bullet.get(i).y <= 0)
+			{
+				bullet.remove(i);
+			}
+		}
+
+		//Remove hit aliens and bullets
 		
-		
-		
+		for (int i = 0; i < alien.length; i++)
+		{
+			if (alien[i].isVisible)
+			{
+				for (int j = 0; j < bullet.size(); j++)
+				{
+					
+					//if (alien[i].getHitBox().intersects(bullet.get(j).getHitBox()))
+					//if (bullet.get(j).x >= alien[i].x + alien[i].h && bullet.get(j).x <= alien[i].x + alien[i].h + alien[i].w && bullet.get(j).y >= alien[i].y + alien[i].h && bullet.get(j).y + alien[i].h <= alien[i].y + alien[i].h + alien[i].w)
+					if (isHit(bullet.get(j).getHitBox(), alien[i].getHitBox()))
+					{
+						bullet.remove(j);
+						alien[i].isVisible = false;
+					}
+				}
+			}
+		}
 		
 		
 					 
@@ -160,7 +188,18 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 		
 	}
 
-	
+	public boolean isHit(Rectangle a, Rectangle b)
+	{
+		if (a.x > b.x + b.width || b.x > a.x + a.width)
+		{
+			return false;
+		}
+		if (a.y > b.y + b.height || b.y > a.y + a.height)
+		{
+			return false;
+		}
+		return true;
+	}
 	
 	@Override
 	public void keyPressed(KeyEvent e) {
@@ -191,13 +230,17 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 		{
 			ship.moveRight = false;
 		}
+		if (key == 38)
+		{
+			bullet.add(new Bullet(ship.x + ship.w / 2, ship.y - 5, 10, 2, 5));
+		}
 	}
 
 	@Override
 	public void keyTyped(KeyEvent e) {
 		// TODO Auto-generated method stub
-		
 	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
