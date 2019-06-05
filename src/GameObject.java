@@ -8,8 +8,6 @@ public class GameObject
 	int w;
 	int h;
 	
-	Rectangle hitBox;
-	
 	public GameObject(int x, int y, int s, int w, int h)
 	{
 		this.x = x;
@@ -17,13 +15,12 @@ public class GameObject
 		this.s = s;
 		this.w = w;
 		this.h = h;
-		
-		hitBox = new Rectangle(x, y, w, h);
 	}
 	
 	public Rectangle getHitBox()
 	{
-		return hitBox;
+		Rectangle hitbox = new Rectangle(x, y, w, h);
+		return hitbox;
 	}
 	
 }

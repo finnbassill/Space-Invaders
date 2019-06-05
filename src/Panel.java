@@ -168,10 +168,7 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 			{
 				for (int j = 0; j < bullet.size(); j++)
 				{
-					
-					//if (alien[i].getHitBox().intersects(bullet.get(j).getHitBox()))
-					//if (bullet.get(j).x >= alien[i].x + alien[i].h && bullet.get(j).x <= alien[i].x + alien[i].h + alien[i].w && bullet.get(j).y >= alien[i].y + alien[i].h && bullet.get(j).y + alien[i].h <= alien[i].y + alien[i].h + alien[i].w)
-					if (isHit(bullet.get(j).getHitBox(), alien[i].getHitBox()))
+					if (alien[i].getHitBox().intersects(bullet.get(j).getHitBox()))
 					{
 						bullet.remove(j);
 						alien[i].isVisible = false;
@@ -179,14 +176,8 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 				}
 			}
 		}
-		
-		
-					 
-				 
-					
-			 
-		
-	}
+	} // paint
+	
 
 	public boolean isHit(Rectangle a, Rectangle b)
 	{
