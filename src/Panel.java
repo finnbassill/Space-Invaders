@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.Timer;
 
 public class Panel extends JPanel implements KeyListener, ActionListener
@@ -17,11 +19,18 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 	private final int panelWidth = 1000;
 	private final int panelHeight = 1000;
 	private Timer timer = new Timer(20, this);
-	
+	private int lives = 3;
+		
 	private Ship ship;
-	private Alien[] alien = new Alien[10];
+	
+	private ArrayList<Alien> alien = new ArrayList<Alien>();
+	
+	private ArrayList<Bomb> bomb = new ArrayList<Bomb>();
 	
 	private ArrayList<Bullet> bullet = new ArrayList<Bullet>();
+	
+	boolean canFireBomb;
+	boolean playing;
 	
 	public Panel()
 	{
@@ -35,15 +44,18 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 		this.requestFocusInWindow();
 		this.setLayout(null);
 		
+		canFireBomb = true;
+		playing = true;
+		
 		timer.start();
 		
 		ship = new Ship(panelWidth/2, panelHeight - 100, 8, 20, 20);
 		
 		int ax = 10;
-		int ay = 10;
-		for (int i = 0; i < alien.length; i++)
+		int ay = 40;
+		for (int i = 0; i < 10; i++)
 		{
-			alien[i] = new Alien(ax, ay, 3, 40, 40);
+			alien.add(new Alien(ax, ay, 3, 40, 40));
 			ax += 100;
 			if (i == 4)
 			{
@@ -51,8 +63,6 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 				ax = 10;
 			}
 		}
-		
-		
 		
 	}
 		
@@ -66,117 +76,165 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 		g.setColor(Color.WHITE);
 		g.fillRect(0, 0, panelWidth, panelHeight);
 		
-		//Drawing ship
-		g.setColor(Color.RED);
-		g.fillRect(ship.x, ship.y, ship.w, ship.h);
-		
-		//Move ship
-		if (ship.moveLeft)
-		{
-			if (ship.x - ship.s >= - 3)
-			{
-				ship.x -= ship.s;
-			}
-		}
-		if (ship.moveRight)
-		{
-			if (ship.x + ship.s <= panelWidth - 10)
-			{
-				ship.x += ship.s;
-			}
-		}
-
-		
-	
-		
-		//Draw aliens
-		g.setColor(Color.BLUE);
-		for (int i = 0; i < alien.length; i++)
-		{
-			if (alien[i].isVisible)
-			{
-				g.fillRect(alien[i].x, alien[i].y, alien[i].w, alien[i].h);
-			}
-		}
-		
-		//Move aliens left or right
-		for (int i = 0; i < alien.length; i++)
-		{
-			 if (alien[i].moveRight)
-			 {
-				 alien[i].x += alien[i].s;
-			 }
-			 if (alien[i].moveLeft)
-			 {
-				 alien[i].x -= alien[i].s;
-			 }	 
-		}			 
-					 
-		//Move aliens down
-		for (int i = 0; i < alien.length; i++)
-		{
-			if (alien[i].moveRight)
-			{
-				if (alien[i].x + alien[i].w >= panelWidth)
-				 {
-					 for (int j = 0; j < alien.length; j++)
-					 {
-						 alien[j].y += 100;
-						 alien[j].moveRight = false;
-						 alien[j].moveLeft = true;
-					 }
-					 i = alien.length;
-				 }	
-			}
-			else
-			{
-				if (alien[i].x <= 0)
-				 {
-					 for (int j = 0; j < alien.length; j++)
-					 {
-						 alien[j].y += 100;
-						 alien[j].moveRight = true;
-						 alien[j].moveLeft = false;
-					 }
-					 i = alien.length;
-				 }	
-			}
-		}	
-		
-		//Draw bullets
+		//Show score
 		g.setColor(Color.black);
-		for(Bullet i : bullet)
-		{
-			g.fillRect(i.x, i.y, i.w, i.h);
-		}
-					
-		//Move bullets
-		for (int i = 0; i < bullet.size(); i++)
-		{
-			bullet.get(i).y -= bullet.get(i).s;
-			if (bullet.get(i).y <= 0)
-			{
-				bullet.remove(i);
-			}
-		}
-
-		//Remove hit aliens and bullets
+		g.drawString("Score:", 20, 20);
 		
-		for (int i = 0; i < alien.length; i++)
+		//In game
+		if (playing)
 		{
-			if (alien[i].isVisible)
+			//Drawing ship
+			g.setColor(Color.RED);
+			g.fillRect(ship.x, ship.y, ship.w, ship.h);
+			
+			//Move ship
+			if (ship.moveLeft)
 			{
-				for (int j = 0; j < bullet.size(); j++)
+				if (ship.x - ship.s >= - 3)
 				{
-					if (alien[i].getHitBox().intersects(bullet.get(j).getHitBox()))
+					ship.x -= ship.s;
+				}
+			}
+			if (ship.moveRight)
+			{
+				if (ship.x + ship.s <= panelWidth - 10)
+				{
+					ship.x += ship.s;
+				}
+			}
+	
+			
+		
+			
+			//Draw aliens
+			g.setColor(Color.BLUE);
+			for (int i = 0; i < alien.size(); i++)
+			{
+				g.fillRect(alien.get(i).x, alien.get(i).y, alien.get(i).w, alien.get(i).h);
+			}
+			
+			//Move aliens left or right
+			for (int i = 0; i < alien.size(); i++)
+			{
+				 if (alien.get(i).moveRight)
+				 {
+					 alien.get(i).x += alien.get(i).s;
+				 }
+				 if (alien.get(i).moveLeft)
+				 {
+					 alien.get(i).x -= alien.get(i).s;
+				 }	 
+			}			 
+						 
+			//Move aliens down
+			for (int i = 0; i < alien.size(); i++)
+			{
+				if (alien.get(i).moveRight)
+				{
+					if (alien.get(i).x + alien.get(i).w >= panelWidth)
+					 {
+						 for (int j = 0; j < alien.size(); j++)
+						 {
+							 alien.get(j).y += 100;
+							 alien.get(j).moveRight = false;
+							 alien.get(j).moveLeft = true;
+						 }
+						 i = alien.size();
+					 }	
+				}
+				else
+				{
+					if (alien.get(i).x <= 0)
+					 {
+						 for (int j = 0; j < alien.size(); j++)
+						 {
+							 alien.get(j).y += 100;
+							 alien.get(j).moveRight = true;
+							 alien.get(j).moveLeft = false;
+						 }
+						 i = alien.size();
+					 }	
+				}
+			}	
+			
+			//Draw bullets
+			g.setColor(Color.black);
+			for(Bullet i : bullet)
+			{
+				g.fillRect(i.x, i.y, i.w, i.h);
+			}
+						
+			//Move bullets
+			for (int i = 0; i < bullet.size(); i++)
+			{
+				bullet.get(i).y -= bullet.get(i).s;
+				if (bullet.get(i).y <= 0)
+				{
+					bullet.remove(i);
+				}
+			}
+	
+			//Check if alien is hit
+			
+			for (int j = 0; j < bullet.size(); j++)
+			{
+				for (int i = 0; i < alien.size();i++)
+				{
+					if (alien.get(i).getHitBox().intersects(bullet.get(j).getHitBox()))
 					{
 						bullet.remove(j);
-						alien[i].isVisible = false;
+						alien.remove(i);
 					}
+				}
+				if (alien.size() == 0)
+				{
+					bomb.clear();
+					bullet.clear();
+					playing = false;
+				}
+			}
+			
+			
+			//Drop bomb
+			if (canFireBomb)
+			{
+				 int i = (int)(Math.random() * alien.size());
+				 bomb.add(new Bomb(alien.get(i).x + (alien.get(i).w / 2), alien.get(i).y + alien.get(i).h, 8, 2, 10));	
+				 canFireBomb = false;
+			}
+			
+			//Draw bomb
+			g.setColor(Color.black);
+			for (int i = 0; i < bomb.size(); i++)
+			{
+				g.fillRect(bomb.get(i).x, bomb.get(i).y, bomb.get(i).w, bomb.get(i).h);
+			}
+			
+			//Move bomb
+			for (int i = 0; i < bomb.size(); i++)
+			{
+				bomb.get(i).y += bomb.get(i).s;
+				if (bomb.get(i).y >= panelHeight)
+				{
+					bomb.remove(i);
+					canFireBomb = true;
+				}
+			}
+			
+			//Check if ship is hit
+			for (int i = 0; i < bomb.size(); i++)
+			{
+				if (bomb.get(i).getHitBox().intersects(ship.getHitBox()))
+				{
+					bomb.remove(i);
+					playing = false;
 				}
 			}
 		}
-	} // paint
+	} 
+	
+	
+	
 	
 
 	public boolean isHit(Rectangle a, Rectangle b)
@@ -223,7 +281,10 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 		}
 		if (key == 38)
 		{
-			bullet.add(new Bullet(ship.x + ship.w / 2, ship.y - 5, 10, 2, 5));
+			if (playing)
+			{
+				bullet.add(new Bullet(ship.x + ship.w / 2, ship.y - 5, 10, 2, 5));
+			}
 		}
 	}
 
@@ -240,7 +301,6 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 			repaint();
 		}
 	}
-	
 	
 	
 	
