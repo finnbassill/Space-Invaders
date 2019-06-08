@@ -19,7 +19,7 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 	private final int panelWidth = 1000;
 	private final int panelHeight = 1000;
 	private Timer timer = new Timer(20, this);
-	private int lives = 3;
+
 		
 	private Ship ship;
 	
@@ -31,6 +31,10 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 	
 	boolean canFireBomb;
 	boolean playing;
+	private int score;
+	private int lives;
+	private int rounds;
+	private int maxBombs;
 	
 	public Panel()
 	{
@@ -43,12 +47,17 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 		this.setFocusable(true);
 		this.requestFocusInWindow();
 		this.setLayout(null);
-		
-		canFireBomb = true;
-		playing = true;
-		
+		playing = false;
+		maxBombs = 5;
 		timer.start();
+
 		
+		
+	}
+		
+	private void setup()
+	{	
+		canFireBomb = true;
 		ship = new Ship(panelWidth/2, panelHeight - 100, 8, 20, 20);
 		
 		int ax = 10;
@@ -62,11 +71,8 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 				ay += 100;
 				ax = 10;
 			}
-		}
-		
+		}	
 	}
-		
-		
 	
 	public void paint(Graphics g)
 	{
@@ -78,7 +84,14 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 		
 		//Show score
 		g.setColor(Color.black);
-		g.drawString("Score:", 20, 20);
+		g.drawString("Score: " + score, 20, 20);
+		g.drawString("Round: " + rounds, 100, 20);
+		g.drawString("Lives: " + lives, 180, 20);
+		//Start Screen
+		if (!playing)
+		{
+			g.drawString("Press space to start", 450, 500);
+		}
 		
 		//In game
 		if (playing)
@@ -182,15 +195,20 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 				{
 					if (alien.get(i).getHitBox().intersects(bullet.get(j).getHitBox()))
 					{
+						score += 10;
 						bullet.remove(j);
 						alien.remove(i);
+						i = alien.size();
 					}
 				}
 				if (alien.size() == 0)
 				{
+					score += 500;
+					rounds++;
 					bomb.clear();
 					bullet.clear();
-					playing = false;
+					alien.clear();
+					setup();
 				}
 			}
 			
@@ -200,7 +218,10 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 			{
 				 int i = (int)(Math.random() * alien.size());
 				 bomb.add(new Bomb(alien.get(i).x + (alien.get(i).w / 2), alien.get(i).y + alien.get(i).h, 8, 2, 10));	
-				 canFireBomb = false;
+				 if (bomb.size() == maxBombs)
+				 {
+					 canFireBomb = false;
+				 }
 			}
 			
 			//Draw bomb
@@ -226,8 +247,16 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 			{
 				if (bomb.get(i).getHitBox().intersects(ship.getHitBox()))
 				{
-					bomb.remove(i);
-					playing = false;
+					lives--;
+					alien.clear();
+					bomb.clear();
+					setup();
+					if (lives < 0)
+					{
+						lives++;
+						playing = false;
+						bullet.clear();
+					}
 				}
 			}
 		}
@@ -284,6 +313,18 @@ public class Panel extends JPanel implements KeyListener, ActionListener
 			if (playing)
 			{
 				bullet.add(new Bullet(ship.x + ship.w / 2, ship.y - 5, 10, 2, 5));
+			}
+		}
+		if (key == 32)
+		{
+			if (!playing)
+			{
+				setup();
+				canFireBomb = true;
+				score = 0;
+				lives = 2;
+				rounds = 1;	 
+				playing = true;
 			}
 		}
 	}
